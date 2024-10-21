@@ -10,6 +10,19 @@ load_dotenv()
 # Инициализация OpenAI API ключа
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Получение данных о резюме через API HH
+def get_resume(resume_id):
+    url = f"https://api.hh.ru/resumes/{resume_id}"
+    response = requests.get(url)
+    data = response.json()
+    # Извлекаем ключевые навыки, если они есть
+    skills = [skill['name'] for skill in data.get('skills', [])]
+    full_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+    return {
+        "full_name": full_name,
+        "skills": skills
+    }
+
 # Получение данных о вакансии через API HH
 def get_vacancy(vacancy_id):
     url = f"https://api.hh.ru/vacancies/{vacancy_id}"
