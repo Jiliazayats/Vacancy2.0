@@ -10,32 +10,7 @@ load_dotenv()
 # Инициализация OpenAI API ключа
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Авторизация через OAuth HH (добавьте свои client_id и client_secret)
-CLIENT_ID = os.getenv("HH_CLIENT_ID")
-CLIENT_SECRET = os.getenv("HH_CLIENT_SECRET")
-REDIRECT_URI = "https://your.redirect.uri"
-ACCESS_TOKEN = None  # Здесь должен быть сохранен полученный токен доступа
-
-# Получение токена через OAuth
-# Потребуется сначала получить authorization_code, а затем использовать его для получения токена доступа
-
-def get_access_token():
-    global ACCESS_TOKEN
-    if not ACCESS_TOKEN:
-        response = requests.post(
-            "https://hh.ru/oauth/token",
-            data={
-                "grant_type": "authorization_code",
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "code": "YOUR_AUTHORIZATION_CODE",
-                "redirect_uri": REDIRECT_URI,
-            },
-        )
-        response_data = response.json()
-        ACCESS_TOKEN = response_data.get("access_token")
-
-# Получение данных о вакансии через API HH
+# Получение данных о вакансии через публичную страницу HH
 def get_vacancy(vacancy_id):
     url = f"https://api.hh.ru/vacancies/{vacancy_id}"
     response = requests.get(url)
@@ -43,14 +18,10 @@ def get_vacancy(vacancy_id):
         return {"error": "Вакансия не найдена"}
     return response.json()
 
-# Получение данных о резюме через API HH
+# Получение данных о резюме через публичную страницу HH
 def get_resume(resume_id):
-    get_access_token()  # Убедиться, что токен есть
     url = f"https://api.hh.ru/resumes/{resume_id}"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}"
-    }
-    response = requests.get(url, headers=headers)
+    response = requests.get(url)
     if response.status_code == 404:
         return {"error": "Резюме не найдено"}
     data = response.json()
