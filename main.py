@@ -15,7 +15,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def parse_vacancy(vacancy_url):
     response = requests.get(vacancy_url)
     if response.status_code != 200:
-        return {"error": "Вакансия не найдена"}
+        return {"error": f"Вакансия не найдена, статус ответа: {response.status_code}", "content": response.content}
     
     soup = BeautifulSoup(response.content, 'html.parser')
     title = soup.find('h1', {'data-qa': 'vacancy-title'}).text.strip() if soup.find('h1', {'data-qa': 'vacancy-title'}) else 'Не указано'
@@ -30,7 +30,7 @@ def parse_vacancy(vacancy_url):
 def parse_resume(resume_url):
     response = requests.get(resume_url)
     if response.status_code != 200:
-        return {"error": "Резюме не найдено"}
+        return {"error": f"Резюме не найдено, статус ответа: {response.status_code}", "content": response.content}
 
     soup = BeautifulSoup(response.content, 'html.parser')
     full_name = soup.find('span', {'data-qa': 'resume-personal-name'}).text.strip() if soup.find('span', {'data-qa': 'resume-personal-name'}) else 'Не указано'
@@ -69,10 +69,12 @@ if st.button("Оценить резюме"):
         job_description = parse_vacancy(vacancy_url)
         if "error" in job_description:
             st.write(job_description["error"])
+            st.write(job_description.get("content", ""))
         else:
             cv = parse_resume(resume_url)
             if "error" in cv:
                 st.write(cv["error"])
+                st.write(cv.get("content", ""))
             else:
                 # Отображение данных
                 st.write("Описание вакансии:")
