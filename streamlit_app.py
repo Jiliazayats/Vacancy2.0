@@ -43,6 +43,14 @@ if st.button("Оценить резюме"):
 
         st.write("### Описание вакансии:")
         st.write(job_description)
+        
+        # Отображение ключевых навыков из описания вакансии
+        skills_start = job_description.find("## Ключевые навыки")
+        if skills_start != -1:
+            skills_section = job_description[skills_start:]
+            st.write("### Ключевые навыки вакансии:")
+            st.write(skills_section)
+
         st.write("### Резюме кандидата:")
         st.write(cv)
 
