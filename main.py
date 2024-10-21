@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 import streamlit as st
 import openai
 import os
@@ -10,24 +11,32 @@ load_dotenv()
 # Инициализация OpenAI API ключа
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Получение данных о вакансии через публичную страницу HH
-def get_vacancy(vacancy_id):
-    url = f"https://api.hh.ru/vacancies/{vacancy_id}"
-    response = requests.get(url)
-    if response.status_code == 404:
+# Парсинг страницы вакансии
+def parse_vacancy(vacancy_url):
+    response = requests.get(vacancy_url)
+    if response.status_code != 200:
         return {"error": "Вакансия не найдена"}
-    return response.json()
+    
+    soup = BeautifulSoup(response.content, 'html.parser')
+    title = soup.find('h1', {'data-qa': 'vacancy-title'}).text.strip() if soup.find('h1', {'data-qa': 'vacancy-title'}) else 'Не указано'
+    description = soup.find('div', {'data-qa': 'vacancy-description'}).text.strip() if soup.find('div', {'data-qa': 'vacancy-description'}) else 'Не указано'
+    
+    return {
+        "title": title,
+        "description": description
+    }
 
-# Получение данных о резюме через публичную страницу HH
-def get_resume(resume_id):
-    url = f"https://api.hh.ru/resumes/{resume_id}"
-    response = requests.get(url)
-    if response.status_code == 404:
+# Парсинг страницы резюме
+def parse_resume(resume_url):
+    response = requests.get(resume_url)
+    if response.status_code != 200:
         return {"error": "Резюме не найдено"}
-    data = response.json()
-    # Извлекаем ключевые навыки, если они есть
-    skills = [skill['name'] for skill in data.get('skills', [])]
-    full_name = f"{data.get('first_name', 'Не указано')} {data.get('last_name', 'Не указано')}".strip()
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    full_name = soup.find('span', {'data-qa': 'resume-personal-name'}).text.strip() if soup.find('span', {'data-qa': 'resume-personal-name'}) else 'Не указано'
+    skills_section = soup.find('div', {'data-qa': 'skills-block'})
+    skills = [skill.text.strip() for skill in skills_section.find_all('span', {'data-qa': 'bloko-tag__text'})] if skills_section else []
+
     return {
         "full_name": full_name,
         "skills": skills
@@ -49,19 +58,19 @@ def request_gpt(system_prompt, user_prompt):
 # Streamlit UI на русском языке
 st.title("Оценка резюме")
 
-job_id = st.text_area("Введите ID вакансии")
-resume_id = st.text_area("Введите ID резюме")
+vacancy_url = st.text_area("Введите ссылку на вакансию")
+resume_url = st.text_area("Введите ссылку на резюме")
 
 SYSTEM_PROMPT = "Вы являетесь экспертом по оценке резюме и вакансий. Сравните резюме и вакансию и предоставьте оценку."
 
 if st.button("Оценить резюме"):
     with st.spinner("Оценка резюме..."):
         # Получение данных
-        job_description = get_vacancy(job_id)
+        job_description = parse_vacancy(vacancy_url)
         if "error" in job_description:
             st.write(job_description["error"])
         else:
-            cv = get_resume(resume_id)
+            cv = parse_resume(resume_url)
             if "error" in cv:
                 st.write(cv["error"])
             else:
