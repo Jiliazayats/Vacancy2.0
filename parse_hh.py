@@ -40,7 +40,7 @@ def extract_vacancy_data(html):
     # Извлечение ключевых навыков
     skills = [
         skill.text.strip()
-        for skill in soup.find_all("li", class_="vacancy-skill-list__item")
+        for skill in soup.find_all("div", class_="magritte-tag__label___YHV-o_3-0-13")
     ]
 
     # Формирование строки в формате Markdown
