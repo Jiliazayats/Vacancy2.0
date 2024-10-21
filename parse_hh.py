@@ -1,5 +1,5 @@
 import requests
-
+from bs4 import BeautifulSoup
 
 def get_html(url: str):
     return requests.get(
@@ -8,14 +8,6 @@ def get_html(url: str):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
         },
     )
-
-
-# print(response.text)
-# with open("vacancy.html", "w") as f:
-#     f.write(response.text)
-
-from bs4 import BeautifulSoup
-
 
 def extract_vacancy_data(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -48,9 +40,7 @@ def extract_vacancy_data(html):
     # Извлечение ключевых навыков
     skills = [
         skill.text.strip()
-        for skill in soup.find_all(
-            "div", {"class": "magritte-tag__label___YHV-o_3-0-3"}
-        )
+        for skill in soup.find_all("li", class_="vacancy-skill-list__item")
     ]
 
     # Формирование строки в формате Markdown
@@ -71,9 +61,6 @@ def extract_vacancy_data(html):
 """
 
     return markdown.strip()
-
-
-# from bs4 import BeautifulSoup
 
 def extract_candidate_data(html):
     soup = BeautifulSoup(html, 'html.parser')
