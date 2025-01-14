@@ -1,6 +1,7 @@
-from openai import OpenAI
+import openai
 import streamlit as st
 from parse_hh import get_job_description, get_candidate_info
+import os
 
 client = openai.Client(
     api_key=os.getenv("OPENAI_API_KEY")
