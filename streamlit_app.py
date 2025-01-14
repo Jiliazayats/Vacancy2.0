@@ -1,3 +1,6 @@
+# Ваш API-ключ OpenAI
+OPENAI_API_KEY = "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"
+
 from openai import OpenAI
 import streamlit as st
 from parse_hh import get_job_description, get_candidate_info
